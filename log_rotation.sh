@@ -1,20 +1,18 @@
 #!/bin/bash
-set -u
 
 # Variables
 log_dir="/var/log/myapp"
 log_file="/var/log/myapp/Log_rotation.log"
 
-# Ensure log directory exists
-if [ ! -d "${log_dir}" ]; then
-    echo "[$(date)] ERROR! Log directory doesn't exist" >&2
-    exit 1
+#Ensure log directory exist
+if [ ! -d "${log_dir}" ];  then
+    echo " [$(date)] ERROR! Log Directory doesn't exist" >> "${log_file}"
 fi
 
-# Compress logs older than 7 days and newer than 30 days
-find "$log_dir" -type f -name "*.log" ! -name "Log_rotation.log" -mtime +7 -mtime -30 -exec sh -c 'gzip "$1" && echo "[$(date)] Compressed: $1" >> "$2"' _ {} "$log_file" \;
+# compress logs older then 7 days
+find "$log_dir" -type f -name "*.log" -mtime +7 -mtime -30  -exec gzip {} \; -exec echo "[$(date)] Compressed Successfully" >> "$log_file" \;
 
-# Delete logs and compressed logs older than 30 days
-find "$log_dir" -type f \( -name "*.log" -o -name "*.gz" \) ! -name "Log_rotation.log" -mtime +30 -exec sh -c 'rm -f "$1" && echo "[$(date)] Deleted: $1" >> "$2"' _ {} "$log_file" \;
+#delete the files zip files older then 30 days
+find "$log_dir" -type f -name "*.gz" -mtime +30 -exec rm -f {} \; -exec echo "$(date) Logs older thean 30days Deleted: {}" >> "$log_file" \;
 
-echo "[$(date)] Log rotation completed." >> "$log_file"
+echo "$(date) log roatation complted successfully." >> "$log_file"
